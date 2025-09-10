@@ -21,13 +21,16 @@ export class Parser {
     }
   }
 
+  private getContext(): string {
+    const margin = 20;
+    const start = Math.max(this.offset - margin, 0);
+    const end = Math.min(this.offset + margin, this.data.length);
+    return JSON.stringify(this.data.slice(start, end));
+  }
+
   private assert(condition: unknown, message: string) {
     if (!condition) {
-      const margin = 20;
-      const start = Math.max(this.offset - margin, 0);
-      const end = Math.min(this.offset + margin, this.data.length);
-      const ctx = JSON.stringify(this.data.slice(start, end));
-      throw new SyntaxError(`${message} - near "${ctx}"`);
+      throw new SyntaxError(`${message} - near "${this.getContext()}"`);
     }
   }
 
@@ -91,7 +94,7 @@ export class Parser {
     } else if (identifier.test(char)) {
       return this.parseSymbol();
     } else {
-      throw new SyntaxError("invalid symbol");
+      throw new SyntaxError("unexpected token near " + this.getContext());
     }
   }
 }
