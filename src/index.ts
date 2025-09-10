@@ -8,4 +8,7 @@ assert(path !== undefined, "missing [path] CLI argument");
 
 const data = fs.readFileSync(path, "utf-8");
 
-console.log(new Parser(data).parse());
+const ast = new Parser(data).parse();
+for (const expr of ast) {
+  console.log(expr);
+}

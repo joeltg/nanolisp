@@ -4,6 +4,7 @@ export type AST = string | AST[];
 
 const whitespace = /^\s$/;
 const identifier = /^[a-zA-Z0-9-+/*"]$/;
+const comment = /^[^\n]$/;
 
 export class Parser {
   offset = 0;
@@ -12,11 +13,13 @@ export class Parser {
   /** top-level array is not an explicit list */
   public parse(): AST[] {
     this.skip(whitespace);
+    this.skipComments();
 
     const ast: AST[] = [];
     while (this.offset < this.data.length) {
       ast.push(this.parseExpression());
       this.skip(whitespace);
+      this.skipComments();
     }
 
     return ast;
@@ -29,6 +32,13 @@ export class Parser {
   skip(pattern: RegExp) {
     while (pattern.test(this.peek())) {
       this.offset += 1;
+    }
+  }
+
+  skipComments() {
+    while (this.peek() === ";") {
+      this.skip(comment);
+      this.skip(whitespace);
     }
   }
 
@@ -52,6 +62,7 @@ export class Parser {
     while (this.peek() !== ")") {
       list.push(this.parseExpression());
       this.skip(whitespace);
+      this.skipComments();
     }
 
     this.expect(")");
