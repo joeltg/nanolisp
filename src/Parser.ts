@@ -8,8 +8,9 @@ const digit = /^\d$/;
 const comment = /^[^\n]$/;
 
 export class Parser {
-  offset = 0;
-  constructor(readonly data: string) {}
+  private offset = 0;
+
+  constructor(private readonly data: string) {}
 
   public *parse(): Iterable<AST> {
     this.skip(whitespace);
@@ -22,43 +23,43 @@ export class Parser {
     }
   }
 
-  peek() {
+  private peek() {
     return this.data.charAt(this.offset);
   }
 
-  skip(pattern: RegExp) {
+  private skip(pattern: RegExp) {
     while (pattern.test(this.peek())) {
       this.offset += 1;
     }
   }
 
-  skipComments() {
+  private skipComments() {
     while (this.peek() === ";") {
       this.skip(comment);
       this.skip(whitespace);
     }
   }
 
-  expect(char: string) {
+  private expect(char: string) {
     assert(char === this.peek(), "syntax error");
     this.offset += 1;
   }
 
-  parseSymbol(): string {
+  private parseSymbol(): string {
     const start = this.offset;
     this.skip(identifier);
     assert(this.offset > start, "syntax error - expected symbol");
     return this.data.slice(start, this.offset);
   }
 
-  parseInteger(): number {
+  private parseInteger(): number {
     const start = this.offset;
     this.skip(digit);
     assert(this.offset > start, "syntax error - expected symbol");
     return parseInt(this.data.slice(start, this.offset));
   }
 
-  parseList(): AST[] {
+  private parseList(): AST[] {
     this.expect("(");
     this.skip(whitespace);
 
@@ -73,7 +74,7 @@ export class Parser {
     return list;
   }
 
-  parseExpression(): AST {
+  private parseExpression(): AST {
     const char = this.peek();
     if (char === "(") {
       return this.parseList();
