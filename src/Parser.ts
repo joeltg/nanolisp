@@ -1,9 +1,10 @@
 import assert from "node:assert";
 
-export type AST = string | AST[];
+export type AST = string | number | AST[];
 
 const whitespace = /^\s$/;
-const identifier = /^[a-zA-Z0-9-+/*"]$/;
+const identifier = /^[a-zA-Z-+/*"]$/;
+const digit = /^\d$/;
 const comment = /^[^\n]$/;
 
 export class Parser {
@@ -50,6 +51,13 @@ export class Parser {
     return this.data.slice(start, this.offset);
   }
 
+  parseInteger(): number {
+    const start = this.offset;
+    this.skip(digit);
+    assert(this.offset > start, "syntax error - expected symbol");
+    return parseInt(this.data.slice(start, this.offset));
+  }
+
   parseList(): AST[] {
     this.expect("(");
     this.skip(whitespace);
@@ -69,8 +77,12 @@ export class Parser {
     const char = this.peek();
     if (char === "(") {
       return this.parseList();
-    } else {
+    } else if (digit.test(char)) {
+      return this.parseInteger();
+    } else if (identifier.test(char)) {
       return this.parseSymbol();
+    } else {
+      throw new SyntaxError("invalid symbol");
     }
   }
 }
