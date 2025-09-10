@@ -10,19 +10,15 @@ export class Parser {
   offset = 0;
   constructor(readonly data: string) {}
 
-  /** top-level array is not an explicit list */
-  public parse(): AST[] {
+  public *parse(): Iterable<AST> {
     this.skip(whitespace);
     this.skipComments();
 
-    const ast: AST[] = [];
     while (this.offset < this.data.length) {
-      ast.push(this.parseExpression());
+      yield this.parseExpression();
       this.skip(whitespace);
       this.skipComments();
     }
-
-    return ast;
   }
 
   peek() {
