@@ -1,5 +1,3 @@
-import assert from "node:assert";
-
 export type AST = string | number | AST[];
 
 const whitespace = /^\s$/;
@@ -10,7 +8,7 @@ const comment = /^[^\n]$/;
 export class Parser {
   private offset = 0;
 
-  constructor(private readonly data: string) {}
+  public constructor(private readonly data: string) {}
 
   public *parse(): Iterable<AST> {
     this.skip(whitespace);
@@ -20,6 +18,16 @@ export class Parser {
       yield this.parseExpression();
       this.skip(whitespace);
       this.skipComments();
+    }
+  }
+
+  private assert(condition: unknown, message: string) {
+    if (!condition) {
+      const margin = 20;
+      const start = Math.max(this.offset - margin, 0);
+      const end = Math.min(this.offset + margin, this.data.length);
+      const ctx = JSON.stringify(this.data.slice(start, end));
+      throw new SyntaxError(`${message} - near "${ctx}"`);
     }
   }
 
@@ -41,21 +49,21 @@ export class Parser {
   }
 
   private expect(char: string) {
-    assert(char === this.peek(), "syntax error");
+    this.assert(char === this.peek(), `expected '${char}'`);
     this.offset += 1;
   }
 
   private parseSymbol(): string {
     const start = this.offset;
     this.skip(identifier);
-    assert(this.offset > start, "syntax error - expected symbol");
+    this.assert(this.offset > start, "syntax error - expected a symbol");
     return this.data.slice(start, this.offset);
   }
 
   private parseInteger(): number {
     const start = this.offset;
     this.skip(digit);
-    assert(this.offset > start, "syntax error - expected symbol");
+    this.assert(this.offset > start, "syntax error - expected an integer");
     return parseInt(this.data.slice(start, this.offset));
   }
 
